@@ -65,6 +65,7 @@ begin
 
 	puts "Access FTP"
 	
+	file_n = nil
 	ftp = Net::FTP.open( $ftp_server ) do |ftp|
 		ftp.passive = true
 		if $ftp_user.nil?
@@ -74,15 +75,27 @@ begin
 		end
 		
 		ftp.chdir $ftp_file_dir
-		ftp.list ( $ftp_file ){ |file| puts file }
+		#ftp.list ( $ftp_file ){ |file| puts file }
 		puts
-		ftp.gettextfile $ftp_file
+		
+		##file exclusion example http://stackoverflow.com/questions/6182160/ruby-netftp-extract-filename-from-ftp-list-solved
+
+		file_l = ftp.nlst $ftp_file
+		file_l.each do |file|
+			file_n = file.inspect
+			puts "Found: #{file_n}"
+			ftp.gettextfile file
+		end
+		puts "Close FTP"
+		ftp.close
 	end
 	
 	##Finally move file
-	#FileUtils.mv('/tmp/your_file', '/opt/new/location/your_file')
-
-
+	puts "Move file #{file_n} to #{$store_path}"
+	file_name = file_n.to_s.delete('"') #file_n.to_s.gsub('"', '')
+	FileUtils.mv(file_name, $store_path+ "/" +file_name)
+	puts "Done."
+	exit 0
 rescue Exception => e
 	error_msg "Exception: #{e}", 2
 end
