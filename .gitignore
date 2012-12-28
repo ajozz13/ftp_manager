@@ -1,0 +1,6 @@
+#FILES AND DIRS TO IGNORE
+.project
+*.*~
+*~
+test-input
+out
