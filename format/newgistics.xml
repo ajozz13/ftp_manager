@@ -3,6 +3,8 @@
 	<user>FTPIBC</user>
 	<pass>5ofq2OnA.c</pass>
 	<filedir>/read/Tracking</filedir>
-	<file>1653_%Y%m%d*</file>
+	<fileList>
+		<file type="text">1653_%Y%m%d*</file> <!-- file type="text" or "binary" -->
+	</fileList>
 	<storePath>/home/aochoa/apps/pod_writer/test-input/hot</storePath>
 </ftpprofile>
