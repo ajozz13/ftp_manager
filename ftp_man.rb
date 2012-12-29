@@ -11,9 +11,8 @@ $ftp_server
 $ftp_user
 $ftp_pass
 $ftp_file_dir
-$ftp_file
+$ftp_file_list = Array.new
 $store_path
-
 
 ##functions
 def error_msg msg, exit_code
@@ -32,6 +31,20 @@ end
 
 def date_check input
 	Time.new.strftime input
+end
+
+def store_file file_name
+	print "Move file #{file_name}...."
+	FileUtils.mv(file_name, $store_path+ "/" +file_name)
+	puts "Done."
+end
+
+##CLASSES
+class Input_ftp_file
+	attr_accessor :f_name, :type
+	
+	def initialize
+	end
 end
 
 ##MAIN
@@ -56,16 +69,23 @@ begin
 	$ftp_file_dir = date_check conf_xml.root.elements[ "//filedir" ].text
 	puts "ftp_file_dir: #{$ftp_file_dir }" if debug
 	
-	$ftp_file = date_check conf_xml.root.elements[ "//file" ].text
-	puts "ftp_file: #{$ftp_file }" if debug
+	ftp_file_list_node = conf_xml.root.elements[ "//fileList" ]
+
+	ftp_file_list_node.each_element { |input_file|
+		f = Input_ftp_file.new
+		f.type = input_file.attributes[ "type" ]
+		f.f_name = date_check input_file.text
+		puts "ftp_file: #{f.f_name}" if debug
+		$ftp_file_list.push f
 	
+	}
+	puts "Files to import: #{$ftp_file_list.size}." if debug
 	$store_path = conf_xml.root.elements[ "//storePath" ].text
 	puts "store_path: #{$store_path }" if debug
 	puts
 
 	puts "Access FTP"
-	
-	file_n = nil
+
 	ftp = Net::FTP.open( $ftp_server ) do |ftp|
 		ftp.passive = true
 		if $ftp_user.nil?
@@ -79,23 +99,31 @@ begin
 		puts
 		
 		##file exclusion example http://stackoverflow.com/questions/6182160/ruby-netftp-extract-filename-from-ftp-list-solved
-
-		file_l = ftp.nlst $ftp_file
-		file_l.each do |file|
-			file_n = file.inspect
-			puts "Found: #{file_n}"
-			ftp.gettextfile file
-		end
+		$ftp_file_list.each_index { |index|
+			#puts "POS #{index} has #{$ftp_file_list[index].inspect}"
+			ftp_file = $ftp_file_list[ index ]
+			file_l = ftp.nlst ftp_file.f_name
+			file_l.each do |file|
+				file_n = file.inspect.to_s.delete('"')
+				puts "Found: #{file_n}"
+				if ftp_file.type.eql? "text"
+					puts "Download a text file @ index: #{index + 1}" if debug
+					ftp.gettextfile file
+				else
+					puts "Download a binary file @ index: #{index + 1}" if debug
+					ftp.getbinaryfile file
+				end
+				puts "Saved #{File.size file} bytes."
+				##Finally move file
+				store_file file_n #file_n.to_s.gsub('"', '')
+			end
+		}
+		puts
 		puts "Close FTP"
 		ftp.close
 	end
-	
-	##Finally move file
-	puts "Move file #{file_n} to #{$store_path}"
-	file_name = file_n.to_s.delete('"') #file_n.to_s.gsub('"', '')
-	FileUtils.mv(file_name, $store_path+ "/" +file_name)
-	puts "Done."
-	exit 0
+
 rescue Exception => e
 	error_msg "Exception: #{e}", 2
 end
+exit 0
