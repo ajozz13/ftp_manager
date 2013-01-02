@@ -5,6 +5,7 @@
 	<filedir>/read/Tracking</filedir>
 	<fileList>
 		<file type="text">1653_%Y%m%d*</file> <!-- file type="text" or "binary" -->
+		<!-- <file type="text">1653_%Y%m01*</file> -->
 	</fileList>
 	<storePath>/home/aochoa/apps/pod_writer/test-input/hot</storePath>
 </ftpprofile>
