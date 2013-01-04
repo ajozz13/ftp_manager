@@ -1,4 +1,6 @@
 <ftpprofile>
+	<upload />
+	<download>
 	<server>ftp.newgistics.com</server>
 	<user>FTPIBC</user>
 	<pass>5ofq2OnA.c</pass>
@@ -8,4 +10,6 @@
 		<!-- <file type="text">1653_%Y%m01*</file> -->
 	</fileList>
 	<storePath>/home/aochoa/apps/pod_writer/test-input/hot</storePath>
+	</download>
+
 </ftpprofile>
