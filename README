@@ -1,0 +1,88 @@
+FTP Manager Program
+
+Purpose: 
+	The main purpose of this script is to help the users download and upload files to/from and ftp server.
+
+To execute:
+	Use Ruby or JRuby
+
+	$ ruby|jruby ftp_man.rb path_to_profile.xml [-d]
+
+Profile.xml:
+	The ftp configuration parameters and the descriptor nodes of the files desired to upload / download are 
+	to be stored on a specific formatted xml file.  See the format file description for details.  This XML 
+	file stores the server address and login parameters as well as the details of the files to work with.
+
+Format of Profile.xml:
+	The following is a sample xml file for a download configuration
+
+<ftpprofile>
+
+	<server>ftp.server.com</server>
+
+	<user>ftp_user_name</user>
+	<pass>ftp_user_pass</pass>
+	<!-- For annonimous users, use empty tags for user and pass <user /> -->
+
+	<download>
+		<filedir>/read/Tracking</filedir> <!-- Remote Store Path -->
+		
+		<fileList>  <!-- list of files to process -->
+			<file type="text">1653_%Y%_m_%d*</file>\
+			<file type="binary">1922_%Y%m01.tar.gz</file>
+		</fileList>
+		<storePath>/home/user/storagePath</storePath>  <!-- Local Store Path -->
+	</download>
+
+	<upload />
+</ftpprofile>
+
+	Here is another sample for upload instructions.
+
+<ftpprofile>
+
+	<server>ftp.upload.com</server>
+	<user>upload_trk</user>
+	<pass>upload_trk</pass>
+
+	<upload>
+		<filedir>/upload_dir_trk/tracing</filedir>
+		<fileList>
+			<file type="text">PLIUL_TXT_%Y%m%d*</file>
+			<file type="binary">PLIUL_BINARY__%Y%m01.tar.gz</file>
+		</fileList>
+		<storePath>/home/user/output/path</storePath>
+	</upload>
+	
+	<download />
+
+</ftpprofile>	
+
+	You can have both upload and download instructions, in the same file, provided they are for the same server.
+
+	In this example the program is instructed to login into ftp.server.com with the given username and password.
+	Then remote cd into a /read/Tracking
+	and download the file is the file list.  The program will first convert the variables %Y %m and %d into 
+	the days value and seach for any file named like 1653_2012_01_15* meaning it will find a file named 
+	1653_2012_01_15_1125.txt and another named 1653_2012_01_15_1630.csv and it will process each for download. 
+	(case sensitive).
+	This date convertion feature is also available for the filedir tag, and the storePath tag, just in case the 
+	date is used to name the remote storag epath (filedir) or the local storage path (storePath)
+	The program will download each file in text or binary mode depending on the type attribute of each file tag.
+	Finally the files will be moved into the storagePath.
+	
+	
+	For upload the store path is where the files are stored locally in your server and they will be stored in the
+	ftp's filedir entry path.
+
+Rules for the profile.xml
+	You must supply the server tag, user, and pass tag.
+	Also, each file must have a download and an upload tag. Leave empty tag if nothing to process.
+	Each download or upload tag must have a filedir, a fileList and a storePath tag inside.
+	
+You are free to use this software as you see fit, use at your own discretion.  Any comments or suggestions please
+send me an email directly.
+
+ajozz13@gmail.com
+
+
