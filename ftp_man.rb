@@ -39,6 +39,7 @@ def store_file file_name, sp
 	puts "Done."
 end
 
+#Initialize component data
 def load_node node, action
 	$ftp_file_dir = date_check node.elements[ "//filedir" ].text
 	puts "ftp_file_dir: #{$ftp_file_dir }" if $debug
@@ -55,10 +56,42 @@ def load_node node, action
 
 	}
 	puts "Defined #{action} files: #{$ftp_file_list.size}." if $debug
-	$store_path = node.elements[ "//storePath" ].text
+	$store_path = date_check node.elements[ "//storePath" ].text
 	puts "store_path: #{$store_path }" if $debug
 	puts
 
+end
+
+#process action
+def run_action upload_is_true, ftp_object
+
+	ftp_object.chdir $ftp_file_dir
+	Dir.chdir $store_path if upload_is_true
+	
+	$ftp_file_list.each_index { |index|
+		ftp_file = $ftp_file_list[ index ]
+		file_l = upload_is_true ? Dir.glob( ftp_file.f_name ) : ftp_object.nlst( ftp_file.f_name )
+
+		file_l.each do |file|
+			file_n = file.inspect.delete('"')
+			print "File: #{file_n}"
+			print "..@ #{ index + 1 }.."
+			print upload_is_true ?  "upload " : "download " if $debug
+			if ftp_file.type.eql? "text"
+				print "text mode.." if $debug
+				upload_is_true ? ftp_object.puttextfile(file_n) : ftp_object.gettextfile(file)
+			else
+				print "binary mode.." if $debug
+				upload_is_true ? ftp_object.putbinaryfile(file_n) : ftp_object.getbinaryfile(file)
+			end	
+			puts ".Done."
+			unless upload_is_true
+				puts "Saved #{File.size file} bytes."
+				##Finally move file
+				store_file file_n, $store_path #file_n.to_s.gsub('"', '')
+			end
+		end
+	}
 end
 
 ##CLASSES
@@ -106,54 +139,14 @@ begin
 		 if download_node.has_elements?
 		 	puts "Start Download Sequence."
 		 	load_node download_node, "download"
-		 	ftp.chdir $ftp_file_dir
-		 	#ftp.list ( $ftp_file ){ |file| puts file }
-		 	##file exclusion example http://stackoverflow.com/questions/6182160/ruby-netftp-extract-filename-from-ftp-list-solved
-			$ftp_file_list.each_index { |index|
-				#puts "POS #{index} has #{$ftp_file_list[index].inspect}"
-				ftp_file = $ftp_file_list[ index ]
-				file_l = ftp.nlst ftp_file.f_name
-				file_l.each do |file|
-					file_n = file.inspect.to_s.delete('"')
-					puts "Found: #{file_n}"
-					if ftp_file.type.eql? "text"
-						puts "Download a text file @ index: #{index + 1}" if $debug
-						ftp.gettextfile file
-					else
-						puts "Download a binary file @ index: #{index + 1}" if $debug
-						ftp.getbinaryfile file
-					end
-					puts "Saved #{File.size file} bytes."
-					##Finally move file
-					store_file file_n, $store_path #file_n.to_s.gsub('"', '')
-				end
-			}
+		 	run_action false, ftp
 			puts "End Download Sequence"
 		end
-		
-		puts
+
 		if upload_node.has_elements?
 			puts "Start Upload Sequence."
 			load_node upload_node, "upload"
-			ftp.chdir $ftp_file_dir
-
-			Dir.chdir $store_path
-			$ftp_file_list.each_index { |index|
-				up_file = $ftp_file_list[ index ]
-				file_l = Dir.glob up_file.f_name
-				file_l.each do |file|
-					file_n = file.inspect.to_s.delete('"')
-					puts "Found: #{file_n}"
-					if up_file.type.eql? "text"
-						puts "Upload a text file @ index: #{index + 1}" if $debug
-						ftp.puttextfile file_n
-					else
-						puts "Upload a binary file @ index: #{index + 1}" if $debug
-						ftp.putbinaryfile file_n
-					end
-				end
-			}
-			#ftp.list ( $ftp_file ){ |file| puts file }
+			run_action true, ftp
 			puts "End Upload Sequence."
 		end
 		puts
