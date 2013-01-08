@@ -79,7 +79,7 @@ def run_action upload_is_true, ftp_object
 			print upload_is_true ?  "upload " : "download " if $debug
 			if ftp_file.type.eql? "text"
 				print "text mode.." if $debug
-			#	upload_is_true ? ftp_object.puttextfile(file_n) : ftp_object.gettextfile(file)
+				upload_is_true ? ftp_object.puttextfile(file_n) : ftp_object.gettextfile(file)
 			else
 				print "binary mode.." if $debug
 				upload_is_true ? ftp_object.putbinaryfile(file_n) : ftp_object.getbinaryfile(file)
