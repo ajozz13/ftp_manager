@@ -1,3 +1,4 @@
+#!/usr/bin/env jruby
 #FTP Client to help download files
 #usage: ftp_man profile.xml
 
