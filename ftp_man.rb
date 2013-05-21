@@ -51,6 +51,7 @@ def load_node node, action
 	ftp_file_list_node.each_element { |input_file|
 		f = Input_ftp_file.new
 		f.type = input_file.attributes[ "type" ]
+		f.delete = input_file.attributes[ "delete" ]
 		f.f_name = date_check input_file.text
 		puts "ftp_file: #{f.f_name}" if $debug
 		$ftp_file_list.push f
@@ -84,7 +85,13 @@ def run_action upload_is_true, ftp_object
 			else
 				print "binary mode.." if $debug
 				upload_is_true ? ftp_object.putbinaryfile(file_n) : ftp_object.getbinaryfile(file)
-			end	
+			end
+			unless upload_is_true
+				if ftp_file.delete.eql? "Y"
+					print "delete file.." if $debug
+					ftp_object.delete(file)			
+				end	
+			end
 			puts ".Done."
 			
 			if upload_is_true and $debug
@@ -101,7 +108,7 @@ end
 
 ##CLASSES
 class Input_ftp_file
-	attr_accessor :f_name, :type
+	attr_accessor :f_name, :type, :delete
 	
 	def initialize
 	end
@@ -160,6 +167,6 @@ begin
 	end
 
 rescue Exception => e
-	error_msg "Exception: #{e}", 2
+	error_msg "Exception: #{e} \n #{e.backtrace}", 2
 end
 exit 0
