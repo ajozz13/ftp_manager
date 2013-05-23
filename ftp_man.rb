@@ -94,7 +94,7 @@ def run_action upload_is_true, ftp_object
 			end
 			puts ".Done."
 			
-			if upload_is_true and $debug
+			if upload_is_true 
 				puts "Directory Listing"
 				ftp_object.list('*') { |f| puts f }
 			else
